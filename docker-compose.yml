@@ -1,0 +1,52 @@
+version: '3.7'
+
+services:
+  mysqldb:
+    image: mysql:5.7
+    container_name: mysqldb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: userdb
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 123456
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data:/var/lib/mysql
+      - ./conf:/etc/mysql/conf.d
+      - ./logs:/logs
+    networks:
+      - mynet
+
+  api-server:
+    image: api-server
+    build: ./server/
+    stdin_open: true
+    ports:
+      - 5001:5001
+    networks:
+      - mern-app
+    depends_on:
+      - mysqldb
+    volumes:
+      - ./server:/usr/src/server
+      - ./logs:/logs
+
+  client:
+    image: client
+    build: ./client/
+    stdin_open: true
+    ports:
+      - 3000:3000
+    networks:
+      - mern-app
+    volumes:
+      - ./client:/usr/src/client
+      - ./logs:/logs
+
+networks:
+  mern-app:
+    driver: bridge
+  mynet:
+    driver: bridge
